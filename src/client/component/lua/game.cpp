@@ -312,6 +312,21 @@ luaReturnCount_e resetblackmarket(lua_State *luaVM) {
   });
 }
 
+luaReturnCount_e getblackmarketdrops(lua_State *luaVM) {
+  return call(luaVM, []() -> table {
+    table drops = table();
+    int index = 1;
+    for (const currency::loot_drop &drop : currency::black_market_drops()) {
+      table entry = table();
+      // A string like the game's own loot item IDs, HKS numbers are floats
+      entry.set("id", std::to_string(drop.item_id));
+      entry.set("time", drop.time);
+      drops.set(index++, entry);
+    }
+    return drops;
+  });
+}
+
 luaReturnCount_e iscurrencymaxed(lua_State *luaVM) {
   return call(
       luaVM,
@@ -683,6 +698,8 @@ public:
         lua_state::luaL_LoggedReg<"game", "resetgobblegums", resetgobblegums>(),
         lua_state::luaL_LoggedReg<"game", "resetblackmarket",
                                   resetblackmarket>(),
+        lua_state::luaL_LoggedReg<"game", "getblackmarketdrops",
+                                  getblackmarketdrops>(),
         lua_state::luaL_LoggedReg<"game", "iscurrencymaxed", iscurrencymaxed>(),
         lua_state::luaL_LoggedReg<"game", "setcurrencymaxed",
                                   setcurrencymaxed>(),

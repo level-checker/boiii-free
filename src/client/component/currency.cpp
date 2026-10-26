@@ -449,6 +449,7 @@ bool buy_crate(ControllerIndex_t controller, int32_t crate, int32_t currency) {
   std::vector<const loot_item *> rolled;
   uint32_t bonus = 0;
   uint32_t duplicates = 0;
+  const uint32_t now = static_cast<uint32_t>(std::time(nullptr));
   const bool bought = local_db::transaction([&] {
     const uint32_t keys = local_db::balance(cryptokeys_currency);
     const uint32_t crates_left = bundle_drop ? item_count(bundle_drop) : 0;
@@ -503,7 +504,7 @@ bool buy_crate(ControllerIndex_t controller, int32_t crate, int32_t currency) {
         ++duplicates;
       }
       rolled.push_back(item);
-      if (!local_db::set_item(item->id, 1)) {
+      if (!local_db::set_item(item->id, 1, 0, now)) {
         return false;
       }
     }
@@ -1576,6 +1577,21 @@ bool reset_black_market(ControllerIndex_t controller) {
     }
     return true;
   });
+}
+
+std::vector<loot_drop> black_market_drops() {
+  std::vector<loot_drop> drops;
+  if (!enabled()) {
+    return drops;
+  }
+  for (const loot_item &item : mp_loot_pool()) {
+    const std::optional<local_db::item> owned = local_db::get_item(item.id);
+    if (owned && owned->quantity && owned->obtained_time) {
+      drops.push_back({item.id, owned->obtained_time});
+    }
+  }
+  std::ranges::stable_sort(drops, std::ranges::greater{}, &loot_drop::time);
+  return drops;
 }
 
 constexpr int32_t cod_points_currency =

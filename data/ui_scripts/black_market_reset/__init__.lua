@@ -13,6 +13,34 @@ __boiiiBlackMarketResetInstalled = true
 
 require("ui.uieditor.menus.BlackMarket")
 
+-- With Local Currency, owned items are in the local database rather than the game's inventory, so the game's RECENT
+-- tab and screen read them from there
+local getLootItemCount = Engine.GetLootItemCount
+local getLootItems = Engine.GetLootItems
+
+local function isLocalLoot(mode)
+  return mode == Enum.eModes.MODE_MULTIPLAYER and Dvar.cg_local_currency:get()
+end
+
+Engine.GetLootItemCount = function(controller, mode)
+  if not isLocalLoot(mode) then
+    return getLootItemCount(controller, mode)
+  end
+  return #game.getblackmarketdrops()
+end
+
+Engine.GetLootItems = function(controller, mode, first, count)
+  if not isLocalLoot(mode) then
+    return getLootItems(controller, mode, first, count)
+  end
+  local drops = game.getblackmarketdrops()
+  local items = {}
+  for index = first + 1, math.min(first + count, #drops) do
+    table.insert(items, { id = drops[index].id, datetime = drops[index].time, count = 1 })
+  end
+  return items
+end
+
 CoD.OverlayUtility.AddSystemOverlay("ResetBlackMarketConfirmation", {
   menuName = "SystemOverlay_Full",
   title = "RESET BLACK MARKET?",
@@ -62,8 +90,8 @@ CoD.OverlayUtility.AddSystemOverlay("ResetBlackMarketConfirmation", {
   end,
 })
 
--- A RESET tab after BUY, CONTRACTS and DUPLICATES. The list's items come from a function local to the Black Market
--- menu, so the tab is added after it's built, the same way the engine's list helper adds each item.
+-- A RESET tab after the others. The list's items come from a function local to the Black Market menu, so the tab is
+-- added after it's built, the same way the engine's list helper adds each item.
 local tabs = DataSources.BlackMarketList
 local originalPrepare = tabs.prepare
 tabs.prepare = function(controller, list, filter)
@@ -71,6 +99,14 @@ tabs.prepare = function(controller, list, filter)
   local items = list[list.customDataSourceHelper]
   if not items then
     return
+  end
+  -- Crates don't keep duplicates, so there's nothing to burn
+  if Dvar.cg_local_currency:get() then
+    for index = #items, 1, -1 do
+      if Engine.GetModelValue(Engine.GetModel(items[index].model, "displayText")) == "MPUI_BM_DUPLICATES" then
+        table.remove(items, index)
+      end
+    end
   end
   local root = ListHelper_GetListHelperModel(list, true)
   local index = #items + 1
