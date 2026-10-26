@@ -448,6 +448,7 @@ bool buy_crate(ControllerIndex_t controller, int32_t crate, int32_t currency) {
       rare ? rare_crate_odds : common_crate_odds;
   std::vector<const loot_item *> rolled;
   uint32_t bonus = 0;
+  uint32_t duplicates = 0;
   const bool bought = local_db::transaction([&] {
     const uint32_t keys = local_db::balance(cryptokeys_currency);
     const uint32_t crates_left = bundle_drop ? item_count(bundle_drop) : 0;
@@ -499,6 +500,7 @@ bool buy_crate(ControllerIndex_t controller, int32_t crate, int32_t currency) {
         // Everything is owned: show a duplicate instead of an empty slot.
         item = &pool[std::uniform_int_distribution<size_t>(0, pool.size() -
                                                                   1)(random)];
+        ++duplicates;
       }
       rolled.push_back(item);
       if (!local_db::set_item(item->id, 1)) {
@@ -531,6 +533,14 @@ bool buy_crate(ControllerIndex_t controller, int32_t crate, int32_t currency) {
   game::loot::s_lastResult->result = LootResultType::SUCCESS;
   game::loot::s_lastResult->isValid = true;
   update_cryptokey_balances(controller);
+  // The crate screen has no way to mark a duplicate
+  if (duplicates == crate_items) {
+    toast::reward("ALL DUPLICATES", "Collection complete",
+                  "uie_t7_blackmarket_promo_cryptokeys");
+  } else if (duplicates) {
+    toast::reward("COLLECTION COMPLETE", "Every item unlocked",
+                  "uie_t7_blackmarket_promo_cryptokeys");
+  }
   return true;
 }
 
@@ -1547,6 +1557,25 @@ bool reset_gobblegums(ControllerIndex_t controller) {
     LiveInventory_UpdateItemQuantity(index, item.id, 0, 0, 0, 0);
   }
   return true;
+}
+
+// Cryptokeys and bundles are kept.
+bool reset_black_market(ControllerIndex_t controller) {
+  if (!enabled() || !valid_controller_index(controller) ||
+      game::com::Com_IsInGame()) {
+    return false;
+  }
+  // The game reads owned loot from the database, so unlike the GobbleGum reset
+  // there's no engine inventory to update
+  const std::vector<loot_item> &pool = mp_loot_pool();
+  return !pool.empty() && local_db::transaction([&] {
+    for (const loot_item &item : pool) {
+      if (item_count(item.id) && !local_db::set_item(item.id, 0)) {
+        return false;
+      }
+    }
+    return true;
+  });
 }
 
 constexpr int32_t cod_points_currency =

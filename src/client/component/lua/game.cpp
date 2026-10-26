@@ -306,6 +306,12 @@ luaReturnCount_e resetgobblegums(lua_State *luaVM) {
   });
 }
 
+luaReturnCount_e resetblackmarket(lua_State *luaVM) {
+  return call(luaVM, [](const game::ControllerIndex_t controller) -> bool {
+    return currency::reset_black_market(controller);
+  });
+}
+
 luaReturnCount_e iscurrencymaxed(lua_State *luaVM) {
   return call(
       luaVM,
@@ -675,6 +681,8 @@ public:
         lua_state::luaL_LoggedReg<"game", "cookgobblegumrecipe",
                                   cookgobblegumrecipe>(),
         lua_state::luaL_LoggedReg<"game", "resetgobblegums", resetgobblegums>(),
+        lua_state::luaL_LoggedReg<"game", "resetblackmarket",
+                                  resetblackmarket>(),
         lua_state::luaL_LoggedReg<"game", "iscurrencymaxed", iscurrencymaxed>(),
         lua_state::luaL_LoggedReg<"game", "setcurrencymaxed",
                                   setcurrencymaxed>(),

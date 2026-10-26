@@ -17,6 +17,7 @@ bool cook_recipe(game::ControllerIndex_t controller, uint32_t recipe,
 uint32_t distill_balance(bool free);
 uint32_t free_distill_cooldown();
 bool reset_gobblegums(game::ControllerIndex_t controller);
+bool reset_black_market(game::ControllerIndex_t controller);
 bool is_currency_maxed(game::ControllerIndex_t controller, int32_t kind);
 bool set_currency_maxed(game::ControllerIndex_t controller, int32_t kind,
                         bool maxed);
