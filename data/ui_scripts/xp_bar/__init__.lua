@@ -49,6 +49,7 @@ local COLORS = {
   { 0.7, 0.45, 1.0 }, -- Purple
   { 1.0, 1.0, 1.0 }, -- White
 }
+local AUTO_COLOR = #COLORS + 1
 
 local SPAWN_EVENTS = { player_spawned = true, prematch_timer_ended = true }
 
@@ -74,7 +75,7 @@ local function readSettings()
     enabled = Engine.DvarBool(nil, "boiii_xpBar"),
     top = Engine.DvarInt(nil, "boiii_xpBarPosition") == 1,
     popups = Engine.DvarBool(nil, "boiii_xpBarPopups"),
-    color = COLORS[color] and color or 1,
+    color = (COLORS[color] or color == AUTO_COLOR) and color or 1,
   }
 end
 
@@ -138,14 +139,29 @@ local function popupPositions(top)
   return from, to
 end
 
+local function setColor(bar, color)
+  bar.fill:setRGB(color[1], color[2], color[3])
+  bar.popup:setRGB(color[1], color[2], color[3])
+end
+
+-- Red when the rank just started, orange halfway, green when almost complete
+local function autoColor(fraction)
+  if fraction < 0.5 then
+    local t = fraction * 2
+    return { 0.95 + 0.05 * t, 0.3 + 0.3 * t, 0.3 - 0.1 * t }
+  end
+  local t = (fraction - 0.5) * 2
+  return { 1.0 - 0.65 * t, 0.6 + 0.25 * t, 0.2 + 0.15 * t }
+end
+
 local function applyStyle(bar, settings)
   local edge = settings.top and { true, false, 0, BAR_HEIGHT } or { false, true, -BAR_HEIGHT, 0 }
   bar.back:setTopBottom(unpack(edge))
   bar.fill:setTopBottom(unpack(edge))
 
-  local color = COLORS[settings.color]
-  bar.fill:setRGB(color[1], color[2], color[3])
-  bar.popup:setRGB(color[1], color[2], color[3])
+  if COLORS[settings.color] then
+    setColor(bar, COLORS[settings.color])
+  end
 
   bar.popupFrom, bar.popupTo = popupPositions(settings.top)
   bar.popup:setTopBottom(unpack(bar.popupFrom))
@@ -200,6 +216,9 @@ local function update(bar)
   local rank = readRank(bar.controller)
   if not rank then
     return
+  end
+  if settings.color == AUTO_COLOR then
+    setColor(bar, autoColor(progress(rank)))
   end
 
   if not bar.rank or width ~= bar.width then

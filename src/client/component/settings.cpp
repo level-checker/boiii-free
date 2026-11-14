@@ -39,9 +39,9 @@ public:
         "boiii_xpBarPopups", true, game::dvarFlags_e::ARCHIVE,
         "Show a popup with the XP earned next to the XP bar");
     game::register_dvar_int(
-        "boiii_xpBarColor", 0, 0, 6, game::dvarFlags_e::ARCHIVE,
+        "boiii_xpBarColor", 0, 0, 7, game::dvarFlags_e::ARCHIVE,
         "XP bar color: 0 = orange, 1 = gold, 2 = blue, 3 = green, 4 = red, "
-        "5 = purple, 6 = white");
+        "5 = purple, 6 = white, 7 = automatic by progress");
     game::register_dvar_int(
         "boiii_loadingScreen", 0, 0, 2, game::dvarFlags_e::ARCHIVE,
         "Loading screen: 0 = default, 1 = map image, 2 = cinematic");
