@@ -80,6 +80,7 @@ WEAK symbol<CompositeJob[16]> compositeJobs{0x1452CA460, 0x0};
 
 WEAK symbol<ClientConnections *> clientConnections{0x145359BB8, 0x0};
 WEAK symbol<ClientActives *> clients{0x14535D188, 0x0};
+WEAK symbol<uint8_t> CL_UpdateScreen_DrawFpsCall{0x1413E12FE, 0x0};
 WEAK symbol<clientStatic_t> cls{0x14535D190, 0x1428E2E40};
 // TODO: fix the clientStatic_t struct and remove these symbols
 WEAK symbol<gameState_t> cls_gamestate{0x1456a3828, 0x142C294D8};

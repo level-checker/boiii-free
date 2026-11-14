@@ -326,6 +326,10 @@ if isPrivateGame then
       )
     )
 
+    for _, item in ipairs(BoiiiFpsSettings.CreateDvarSettings(controller, "GameTweaks_")) do
+      table.insert(t, item)
+    end
+
     for _, item in ipairs(BoiiiLodSettings.CreateDvarSettings(controller, "GameTweaks_")) do
       table.insert(t, item)
     end

@@ -179,10 +179,9 @@ DataSources.BoiiiQuickSettingsVideo = DataSourceHelpers.ListSetup("BoiiiQuickSet
   )
 
   table.insert(optionsTable, toggle(controller, "r_vsync", "VSync", "Sync framerate to monitor refresh rate."))
-  table.insert(
-    optionsTable,
-    toggle(controller, "com_drawFPS_PC", "Show FPS Counter", "Display frames per second on screen.")
-  )
+  for _, item in ipairs(BoiiiFpsSettings.CreateDvarSettings(controller, "QuickSettings_")) do
+    table.insert(optionsTable, item)
+  end
   table.insert(
     optionsTable,
     CoD.OptionsUtility.CreateDvarSettings(
@@ -449,6 +448,7 @@ DataSources.BoiiiQuickSettingsXpBar = DataSourceHelpers.ListSetup("BoiiiQuickSet
       { option = "Red", value = 4 },
       { option = "Purple", value = 5 },
       { option = "White", value = 6 },
+      { option = "Auto", value = 7 },
     }),
   }
 end)
